@@ -28,6 +28,7 @@ Let's take a look at the wordcloud broken down by author.
 ![MWS Wordcloud](figs/Worldcloud_MWS.png)
 
 Here we can see a few things:
+
 + EAP appears to find a lot of time? Though in all seriousness, no words particularly stick out for EAP. Many of his most common words are the same words in our all authors image, but it may be skewed because our all image doesn't account for relative frequency.
 + HPL also finds a lot of time! But interestingly enough, he does so in a "strange" "house". Interesting. We also note that many of his sentences feature the word "night" as opposed to "day", so a lot of his settings probably occur at night. 
 + MWS really loves Raymond... I have to admit, I've never read MWS, but apparently Raymond is a popular person in her works. She also "love"s "life" and has a lot of "heart". How sweet!! MWS seems to be the more unique of the authors we explore here, as a lot of the words in her wordcloud don't overlap with the words in the master wordcloud. 
@@ -42,6 +43,7 @@ Tidytext helps us identify what we call "bigrams", which are two adjacent words 
 ![](figs/Bigram_tf-idf.png)
 
 Here we can see a few things:
+
 + EAP and HPL both really enjoy laughing... but as they are of the horror genre, I can't imagine that those bits of laughter are anything more than sinister. Particularly "heh heh". No good comes out of "heh heh"s. 
 + MWS really REALLY loves Raymond. Here, we learn that he is a lord! We also learn here that he replies to people a lot, as seen by the very bottom right corner. Perhaps he's a talkative sort of person, or a main character of MWS's writings. 
 + Not only does HPL make up a lot of words, but he also likes to REPEAT the words that he makes up. Not as much as he likes creepy laughter, though.
@@ -63,6 +65,7 @@ Pardon me for the ugly colors of the chart. Hopefully people like pastel tones.
 Before we start with analysis, we must note that the punctuations used for the sake of analyses are commas, colons, question marks, quotation marks, and semicolons. Originally, I wanted to check for hyphens and exclamation points as well, but after a cursory glance through the raw text in the data file, it appeared that there were no exclamation points or hyphens. This is interesting, because we'd expect more people to SCREAM!!! in a horror story. Alas, maybe those bits were not available for our data set. This figure also does not adjust for the number of lines in the data set corresponding to each author: EAP has 7900 sentences, HPL has 5635, and MWS has 6044. We will take a look at those averages later.
 
 Here are some points of note: 
+
 + EAP uses the most punctuation, followed by MWS and HPL. Not surprising, given that we have the most data "points" (i.e. text files) for EAP, followed by MWS and HPL. 
 + MWS seems to like the use of semicolons the most, using them frequently in her text. Compound sentences must be her forte.
 + EAP uses the most quotation marks in his text. Granted, this analysis can't distinguish between dialogue and particular "air quotes" but it's safe to assume that EAP, and the other two authors doesn't use too many of those -- they probably don't appear often in fictional stories that don't include sarcasm. This point is also dependent on whether or not the quotation mark appears twice; most dialogues will include two quotation marks, though a cursory glance at the data showed that this is not always the case.
@@ -72,7 +75,27 @@ Now let's look at averages!
 
 ![](figs/Punctuation_Averages.png)
 
-This figure makes it easier to see how often a punctuation occurs in a sentence, as it's an average of how often each punctuation shows up per sentence.
+This figure makes it easier to see how often a punctuation occurs in a sentence, as it's an average of how often each punctuation shows up per sentence. Now we can really see that:
+
++ Our original intuition was right that EAP uses a lot of commas. On average, he uses more than two commas per sentence. Our intuition that EAP uses a lot of quotation marks/dialogue is correct as well, since he uses them more frequently than the other two authors.
++ We can also see more clearly here that MWS uses a lot of semicolons.
++ HPL doesn't really like punctuation marks. He uses the comma a lot (as do most people in their writing), but on average uses less punctuation than the other two authors.
+
+### Gendered Words
+
+I've always wondered if a female author was more likely to write about girls and a male author was more likely to write about boys. While we don't have enough authors to really test this theory, we can start with the analysis of the three authors we do have. 
+
+![](figs/Gender_comp.png)
+
+We divide the gendered words into "man" and "woman", then "he" and "she", then "him" and "her", and finally analyze a variety of gendered words including the ones already listed and words like "gentleman" or "male" or "madam" or "female", that clearly indicate the gender of the person. Here we can see:
+
++ The authors are pretty similar in how often they use "man" vs. "woman". They all use "man" significantly more than they use "woman". 
++ The graph for "he" vs "she" are more telling; MWS uses a disproportionately high number of "she"s compared to the other authors, and HPL uses very few of them. 
++ The comparison for "him" vs "her" tell a similar story; MWS uses a lot of "her"s compared to the other two authors, which you can see in the skyrocketing blue bar, while HPL uses very few. HPL doesn't seem to love the ladies very much.
++ The fact that there are so many more "him"s than there are "he" also points to something new; the male population in general, for all three authors, are more likely to be the subjects of the sentence rather than the objects of the sentence, almost as if man is generally dominant as opposed to submissive.
++ The general gender indicators show more conclusively that all three authors talk about women less than men, but that MWS is much more apt to talk about women than are the other two authors. Basically, my initial intuition at the beginning of this section appears to be correct, at least for this dataset, that women are more likely to talk about women.
+
+
 
 
 

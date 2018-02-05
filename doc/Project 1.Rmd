@@ -46,6 +46,7 @@ Let's first remind ourselves of the structure of the data.
 head(spooky)
 summary(spooky)
 ```
+We have id numbers for all the text lines, then the text, then a three letter character indicating the author.
 
 # Section 1: Data cleaning
 We first use the `unnest_tokens()` function to drop all punctuation and transform all words into lower case from the `tidytext` package. `tidytext` also contains stop words that we will eliminate. 
@@ -59,7 +60,7 @@ spooky_wrd <- anti_join(spooky_wrd, stop_words, by = "word")
 
 ## Wordcloud - all
 We check to see the word frequency for the fifty most common words, and visualize them in a wordcloud.
-```{r, include = FALSE}
+```{r}
 # Words is a list of words, and freqs their frequencies
 words <- count(group_by(spooky_wrd, word))$word
 freqs <- count(group_by(spooky_wrd, word))$n
@@ -72,7 +73,7 @@ This wordcloud shows that "time", "night", "found", "life", "day" and "eyes" app
 
 ## Wordcloud - separated by author
 We check to see the word frequency for the fifty most common words, separated by author. First, for Edgar Allen Poe, then HP Lovecraft, then Mary Shelley.
-```{r, include = FALSE}
+```{r}
 #EAP
 # Words is a list of words, and freqs their frequencies
 EAP <- filter(spooky_wrd, author == "EAP")
@@ -103,61 +104,9 @@ png("../figs/Worldcloud_MWS.png")
 wordcloud(words, freqs, max.words = 50, color = c("black"))
 dev.off()
 ```
+I personally don't like seeing warning signs, which is why I put include = FALSE, but all of the figures end up generating in the figs folder.
 
-# Section 3: Punctuations
-## Count the number of commas, hyphens, exclamation points
-```{r}
-EAP_sentence <- filter(spooky, author == "EAP")
-EAP_sentence$comma <- str_count(EAP_sentence$text, ',')
-EAP_sentence$colon <- str_count(EAP_sentence$text, '[:]')
-EAP_sentence$quot <- str_count(EAP_sentence$text, '["]')
-EAP_sentence$semi <- str_count(EAP_sentence$text, ';')
-EAP_sentence$question <- str_count(EAP_sentence$text, '[?]')
-
-HPL_sentence <- filter(spooky, author == "HPL")
-HPL_sentence$comma <- str_count(HPL_sentence$text, ',')
-HPL_sentence$colon <- str_count(HPL_sentence$text, '[:]')
-HPL_sentence$quot <- str_count(HPL_sentence$text, '["]')
-HPL_sentence$semi <- str_count(HPL_sentence$text, ';')
-HPL_sentence$question <- str_count(HPL_sentence$text, '[?]')
-
-MWS_sentence <- filter(spooky, author == "MWS")
-MWS_sentence$comma <- str_count(MWS_sentence$text, ',')
-MWS_sentence$colon <- str_count(MWS_sentence$text, '[:]')
-MWS_sentence$quot <- str_count(MWS_sentence$text, '["]')
-MWS_sentence$semi <- str_count(MWS_sentence$text, ';')
-MWS_sentence$question <- str_count(MWS_sentence$text, '[?]')
-```
-
-## Graphically represent our findings of punctuation counts
-```{r, include = FALSE}
-punctuation <- rep(c("commas", "colons", "quotation marks", "semicolons", "question marks"), 3)
-p1 <- c(sum(EAP_sentence$comma), sum(EAP_sentence$colon), sum(EAP_sentence$quot), sum(EAP_sentence$semi), sum(EAP_sentence$question))
-p2 <- c(sum(HPL_sentence$comma), sum(HPL_sentence$colon), sum(HPL_sentence$quot), sum(HPL_sentence$semi), sum(HPL_sentence$question))
-p3 <- c(sum(MWS_sentence$comma), sum(MWS_sentence$colon), sum(MWS_sentence$quot), sum(MWS_sentence$semi), sum(MWS_sentence$question))
-values <- c(p1, p2, p3)
-author <- c(rep("EAP", 5), rep("HPL", 5), rep("MWS", 5))
-df <- data.frame(punctuation, values, author)
-
-p <- ggplot() + geom_bar(aes(y = values, x = author, fill = punctuation), data = df, stat="identity") +
-    scale_fill_hue(c=45, l=80)
-ggsave("Punctuation_Count.png", plot = last_plot(), device = "png", path = "../figs/")
-```
-
-## Graphically represent averages per sentence 
-```{r, include = FALSE}
-p1 <- p1/length(EAP_sentence$text)
-p2 <- p2/length(HPL_sentence$text)
-p3 <- p3/length(MWS_sentence$text)
-values <- c(p1, p2, p3)
-author <- c(rep("EAP", 5), rep("HPL", 5), rep("MWS", 5))
-df <- data.frame(punctuation, values, author)
-
-p2 <- ggplot() + geom_bar(aes(y = values, x = author, fill = punctuation), data = df, stat="identity", position = "dodge") + scale_fill_hue(c=45, l=80)
-ggsave("Punctuation_Averages.png", plot = last_plot(), device = "png", path = "../figs/")
-```
-
-# Section 4: Bigrams
+# Section 3: Bigrams
 ```{r}
 temp <- select(spooky, author, text)
 temp <- unnest_tokens(temp, bigram, text, token = "ngrams", n = 2)
@@ -177,18 +126,22 @@ test_tf_idf <- arrange(temp3, desc(tf_idf))
 ```
 
 ## Graphically represent results
-```{r, include = FALSE}
+```{r}
 a <- arrange(test_tf_idf, desc(tf_idf))
 a <- mutate(a, bigram = factor(bigram, levels = rev(unique(bigram))))
 a <- group_by(a, author)
 a <- top_n(a, 10, tf_idf)
 a <- ungroup(a) 
+
+#graph
 ggplot(a, aes(bigram, tf_idf, fill = author)) + geom_col() + labs(x = NULL, y = "TF-IDF values") +
   theme(legend.position = "none") + facet_wrap(~ author, ncol = 3, scales = "free") + coord_flip()
 ggsave("Bigram_tf-idf.png", plot = last_plot(), device = "png", path = "../figs/")
 ```
+Again, these figures generate in the figs folder. Analysis of these figures are in the main readme.
 
 ## Networks of bigrams
+We use the igraph and ggraph packages to help us visualive the network.
 ```{r}
 bigram_counts <- count(temp2, word1, word2, sort = TRUE)
 b <- filter(bigram_counts, n > 6)
@@ -207,24 +160,90 @@ ggraph(bigram_graph, layout = "fr") +
 
 ggsave("Bigram_network.png", plot = last_plot(), device = "png", path = "../figs/")
 ```
+This figure generates in the figure folder, with the analysis in the readme.
+
+# Section 4: Punctuations
+## Count the number of commas, hyphens, exclamation points
+```{r}
+#count the number of commas, colons, quotation marks, semicolons, and question marks in the text for EAP
+EAP_sentence <- filter(spooky, author == "EAP")
+EAP_sentence$comma <- str_count(EAP_sentence$text, ',')
+EAP_sentence$colon <- str_count(EAP_sentence$text, '[:]')
+EAP_sentence$quot <- str_count(EAP_sentence$text, '["]')
+EAP_sentence$semi <- str_count(EAP_sentence$text, ';')
+EAP_sentence$question <- str_count(EAP_sentence$text, '[?]')
+
+#count the number of commas, colons, quotation marks, semicolons, and question marks in the text for HPL
+HPL_sentence <- filter(spooky, author == "HPL")
+HPL_sentence$comma <- str_count(HPL_sentence$text, ',')
+HPL_sentence$colon <- str_count(HPL_sentence$text, '[:]')
+HPL_sentence$quot <- str_count(HPL_sentence$text, '["]')
+HPL_sentence$semi <- str_count(HPL_sentence$text, ';')
+HPL_sentence$question <- str_count(HPL_sentence$text, '[?]')
+
+#count the number of commas, colons, quotation marks, semicolons, and question marks in the text for MWS
+MWS_sentence <- filter(spooky, author == "MWS")
+MWS_sentence$comma <- str_count(MWS_sentence$text, ',')
+MWS_sentence$colon <- str_count(MWS_sentence$text, '[:]')
+MWS_sentence$quot <- str_count(MWS_sentence$text, '["]')
+MWS_sentence$semi <- str_count(MWS_sentence$text, ';')
+MWS_sentence$question <- str_count(MWS_sentence$text, '[?]')
+```
+
+## Graphically represent our findings of punctuation counts
+```{r}
+#place the total counts for everything in a dataframe, to be graphed later
+punctuation <- rep(c("commas", "colons", "quotation marks", "semicolons", "question marks"), 3)
+p1 <- c(sum(EAP_sentence$comma), sum(EAP_sentence$colon), sum(EAP_sentence$quot), sum(EAP_sentence$semi), sum(EAP_sentence$question))
+p2 <- c(sum(HPL_sentence$comma), sum(HPL_sentence$colon), sum(HPL_sentence$quot), sum(HPL_sentence$semi), sum(HPL_sentence$question))
+p3 <- c(sum(MWS_sentence$comma), sum(MWS_sentence$colon), sum(MWS_sentence$quot), sum(MWS_sentence$semi), sum(MWS_sentence$question))
+values <- c(p1, p2, p3)
+author <- c(rep("EAP", 5), rep("HPL", 5), rep("MWS", 5))
+df <- data.frame(punctuation, values, author)
+
+#now we are graphing the punctuation count
+p <- ggplot() + geom_bar(aes(y = values, x = author, fill = punctuation), data = df, stat="identity") +
+    scale_fill_hue(c=45, l=80)
+ggsave("Punctuation_Count.png", plot = last_plot(), device = "png", path = "../figs/")
+```
+
+## Graphically represent averages per sentence 
+```{r}
+#taking the averages of the things we found earlier 
+p1 <- p1/length(EAP_sentence$text)
+p2 <- p2/length(HPL_sentence$text)
+p3 <- p3/length(MWS_sentence$text)
+values <- c(p1, p2, p3)
+author <- c(rep("EAP", 5), rep("HPL", 5), rep("MWS", 5))
+df <- data.frame(punctuation, values, author)
+
+#graphically representing the averages, this time taking splitting the punctuations side by side.
+p2 <- ggplot() + geom_bar(aes(y = values, x = author, fill = punctuation), data = df, stat="identity", position = "dodge") + scale_fill_hue(c=45, l=80)
+ggsave("Punctuation_Averages.png", plot = last_plot(), device = "png", path = "../figs/")
+```
 
 # Section 5: Gendered Words
+We use the forcats package to help us with factoring the different words in the text and reordering things on the ggplot. Please note that in the last plot, the order of the genders are switched.
 ```{r}
+#counting the number of "man" and "woman" in the text
 a <- unnest_tokens(spooky, word, text)
 a <- filter(a, (word == "man") | (word == "woman"))
 a <- mutate(a, word = as.factor(word))
 mwcomp <- ggplot(a, aes(word, fill = author)) + geom_bar(position = "dodge") + scale_fill_hue(c=70, l=80)
 
+#counting the number of "he" and "she" in the text
 b <- unnest_tokens(spooky, word, text)
 b <- filter(b, (word == "he") | (word == "she"))
 b <- mutate(b, word = as.factor(word))
 heshe <- ggplot(b, aes(word, fill = author)) + geom_bar(position = "dodge") + scale_fill_hue(c=70, l=80)
 
+#counting the number of "him" and "her" in the text
 c <- unnest_tokens(spooky, word, text)
 c <- filter(c, (word == "him") | (word == "her"))
 c <- mutate(c, word = fct_relevel(word, "him", "her"))
 himher <- ggplot(c, aes(word, fill = author)) + geom_bar(position = "dodge") + scale_fill_hue(c=70, l=80)
 
+#counting a variety of different gendered words
 d <- unnest_tokens(spooky, word, text)
 d <- mutate(d, male = ( word == "he" | word == "him" | word == "his" | word == "male" |
                     word == "man" | word == "gentleman" | word == "sir" |
@@ -237,13 +256,14 @@ d <- mutate(d, word = fct_relevel(word, "male", "female")) #note, I tried to rel
 d <- mutate(d, sex = fct_recode(as.factor(sex), male = "TRUE_FALSE", 
                           female = "FALSE_TRUE", other = "FALSE_FALSE"))
 d <- filter(d, sex != "other")
-
 fmcomp <- ggplot(d, aes(sex, fill = author)) + labs(x = "Gender indicators") + geom_bar(position = "dodge") + scale_fill_hue(c=70, l=80)
-  
-layout <- matrix(c(1,2,3,4), 2, 2, byrow = TRUE)
-multiplot(mwcomp, heshe, himher, fmcomp, layout = layout)
-ggsave("Gender_comp.png", plot = last_plot(), device = "png", path = "../figs/")
 
+#generate the multiplot
+layout <- matrix(c(1,2,3,4), 2, 2, byrow = TRUE)
+
+png("../figs/Gender_comp.png")
+multiplot(mwcomp, heshe, himher, fmcomp, layout = layout)
+dev.off()
 ```
 
 
