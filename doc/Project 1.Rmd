@@ -71,6 +71,8 @@ dev.off()
 ```
 This wordcloud shows that "time", "night", "found", "life", "day" and "eyes" appear often between all of the texts.
 
+I commented out the png() portion for the sake of generating a knitted file with all the figures and images in them, and then uncommented them to make sure that the file would still generate all the figures into the figs folder. I do this multiple times throughout the file.
+
 ## Wordcloud - separated by author
 We check to see the word frequency for the fifty most common words, separated by author. First, for Edgar Allen Poe, then HP Lovecraft, then Mary Shelley.
 ```{r}
