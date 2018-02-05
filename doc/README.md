@@ -1,4 +1,5 @@
 # Project 1: 
-### Doc folder
 
-The doc directory contains the report or presentation files. It can have subfolders.  
+* Team members: Minzi Keem (self)
+
+* Summary: In this project, 
